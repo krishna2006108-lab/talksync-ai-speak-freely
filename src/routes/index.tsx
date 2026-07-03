@@ -1,30 +1,46 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import "./index.css";
 
-export const Route = createFileRoute("/")({
-  component: TalkSyncLanding,
+// ============ CONFIG ============
+const PAYMENT_LINK = ""; // TODO: wire to Razorpay checkout
+
+type Seat = {
+  n: number;
+  credits: number;
+  mins: number;
+  taken: boolean;
+};
+
+const seatsQueryOptions = queryOptions({
+  queryKey: ["founding_seats"],
+  queryFn: async (): Promise<Seat[]> => {
+    const { data, error } = await supabase
+      .from("founding_seats")
+      .select("n, credits, mins, taken")
+      .order("n", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as Seat[];
+  },
 });
 
-// ============ CONFIG ============
-const PAYMENT_LINK = ""; // TODO: wire to Razorpay
-
-type Seat = { n: number; credits: number; mins: number; taken: boolean };
-
-const SEATS: Seat[] = [
-  { n: 1, credits: 600, mins: 40, taken: false },
-  { n: 2, credits: 540, mins: 36, taken: false },
-  { n: 3, credits: 495, mins: 33, taken: false },
-  { n: 4, credits: 450, mins: 30, taken: false },
-  { n: 5, credits: 420, mins: 28, taken: false },
-  { n: 6, credits: 390, mins: 26, taken: false },
-  { n: 7, credits: 360, mins: 24, taken: false },
-  { n: 8, credits: 330, mins: 22, taken: false },
-  { n: 9, credits: 315, mins: 21, taken: false },
-  { n: 10, credits: 300, mins: 20, taken: false },
-];
+export const Route = createFileRoute("/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(seatsQueryOptions),
+  component: TalkSyncLanding,
+  errorComponent: ({ error }) => (
+    <div style={{ padding: 24, fontFamily: "system-ui" }} role="alert">
+      Couldn't load seat availability: {String(error?.message ?? "unknown")}
+    </div>
+  ),
+});
 
 const FAQ_ITEMS = [
+  {
+    q: "Can I get this offer later?",
+    a: "No. Each seat sells once. When Seat 10 goes, the founding offer is deleted from this page permanently and pricing becomes ₹2,999/mo for everyone. We're putting this in writing so there's no confusion.",
+  },
   {
     q: "What exactly do I get for ₹299?",
     a: "You lock in a founding seat with your first month of service included, the ₹299/mo price for life, monthly credits tied to your seat number, and direct founder access via WhatsApp to shape the product.",
@@ -65,8 +81,30 @@ function scrollToId(id: string) {
 }
 
 function TalkSyncLanding() {
-  const seatsAvailable = useMemo(() => SEATS.filter((s) => !s.taken).length, []);
-  const nextAvailable = useMemo(() => SEATS.find((s) => !s.taken)?.n ?? null, []);
+  const { data: seats } = useSuspenseQuery(seatsQueryOptions);
+  const queryClient = useQueryClient();
+
+  const seatsAvailable = useMemo(() => seats.filter((s) => !s.taken).length, [seats]);
+  const seatsTaken = seats.length - seatsAvailable;
+  const nextSeat = useMemo(() => seats.find((s) => !s.taken) ?? null, [seats]);
+  const nextAvailable = nextSeat?.n ?? null;
+
+  // Realtime: any change to founding_seats invalidates the query
+  useEffect(() => {
+    const channel = supabase
+      .channel("founding_seats_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "founding_seats" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["founding_seats"] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // Scroll reveal
   useEffect(() => {
@@ -91,7 +129,6 @@ function TalkSyncLanding() {
     return () => io.disconnect();
   }, []);
 
-  // FAQ accordion state
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const claim = (n?: number) => {
@@ -102,12 +139,19 @@ function TalkSyncLanding() {
     }
   };
 
+  const critical = seatsAvailable <= 3;
+  const nextCredits = nextSeat?.credits ?? null;
+
   return (
     <div className="ts-root">
       {/* 0. STICKY TOP BAR */}
-      <div className="ts-sticky" role="banner">
+      <div
+        className={`ts-sticky${critical ? " ts-sticky-critical" : ""}`}
+        role="banner"
+      >
         <span className="ts-sticky-text">
-          🔥 {seatsAvailable}/10 FOUNDING SEATS LEFT — ₹299/MO FOREVER
+          {critical ? "🚨" : "⚡"} ONLY {seatsAvailable} OF 10 FOUNDING SEATS LEFT
+          {nextCredits !== null && ` — NEXT SEAT LOCKS AT ${nextCredits} CREDITS/MO`}
         </span>
         <button className="ts-sticky-btn" onClick={() => scrollToId("seats")}>
           CLAIM
@@ -115,10 +159,12 @@ function TalkSyncLanding() {
       </div>
 
       <main>
-        {/* 1. HERO */}
-        <section className="ts-section ts-section-lime ts-hero">
+        {/* 1. HERO — BLACK bg */}
+        <section className="ts-section ts-section-ink ts-hero">
           <div className="ts-container">
-            <h1>SPEAK HINDI. THEY HEAR ENGLISH. LIVE.</h1>
+            <h1 style={{ color: "var(--white)" }}>
+              SPEAK HINDI. THEY HEAR <span className="ts-hl">ENGLISH.</span> LIVE.
+            </h1>
             <p className="ts-hero-sub">
               Real-time AI voice translation for your client calls on Zoom, Google Meet & Teams.
               You talk in your language — your client hears a natural human-like voice in theirs.
@@ -135,9 +181,7 @@ function TalkSyncLanding() {
               90% off list price · Full refund if we don't launch · Free trial needs no card
             </div>
 
-            {/* Hero visual */}
             <div className="ts-hero-visual ts-reveal" aria-label="Voice translation flow demo">
-              {/* YOU frame */}
               <div className="ts-frame" role="img" aria-label="You speaking Hindi">
                 <span className="ts-frame-label">YOU</span>
                 <div className="ts-frame-body">
@@ -150,7 +194,6 @@ function TalkSyncLanding() {
                 </div>
               </div>
 
-              {/* Pipeline */}
               <div className="ts-pipeline" aria-hidden="true">
                 <div className="ts-node">SPEECH → TEXT</div>
                 <div className="ts-arrow">▶</div>
@@ -159,7 +202,6 @@ function TalkSyncLanding() {
                 <div className="ts-node">AI VOICE</div>
               </div>
 
-              {/* CLIENT frame */}
               <div className="ts-frame" role="img" aria-label="Client hearing English">
                 <span className="ts-frame-label">YOUR CLIENT</span>
                 <div className="ts-frame-body">
@@ -175,7 +217,7 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 2. PROBLEM MARQUEE */}
+        {/* 2. PROBLEM MARQUEE — WHITE bg */}
         <section className="ts-marquee" aria-label="Common problems">
           <div className="ts-marquee-track">
             {Array.from({ length: 3 }).map((_, r) =>
@@ -186,10 +228,12 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 3. WHY THIS EXISTS */}
-        <section className="ts-section ts-section-white">
+        {/* 3. WHY THIS EXISTS — BLACK bg */}
+        <section className="ts-section ts-section-ink">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal">WHY THIS EXISTS</h2>
+            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+              WHY THIS <span className="ts-hl">EXISTS</span>
+            </h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
               <article className="ts-card">
                 <h3>CALLS = TRUST = MONEY</h3>
@@ -207,16 +251,14 @@ function TalkSyncLanding() {
               </article>
               <article className="ts-card">
                 <h3>YOUR SKILL ISN'T THE PROBLEM. THE LANGUAGE WALL IS.</h3>
-                <p>
-                  Remove the wall — keep your skill, your voice, your confidence.
-                </p>
+                <p>Remove the wall — keep your skill, your voice, your confidence.</p>
               </article>
             </div>
           </div>
         </section>
 
-        {/* 4. HOW IT WORKS */}
-        <section className="ts-section ts-section-ink">
+        {/* 4. HOW IT WORKS — OFF-WHITE bg */}
+        <section className="ts-section ts-section-pale">
           <div className="ts-container">
             <h2 className="ts-section-title ts-reveal">HOW IT WORKS</h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
@@ -249,11 +291,18 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 5. DEMO */}
-        <section id="demo" className="ts-section ts-section-white">
+        {/* 5. DEMO — BLACK bg */}
+        <section id="demo" className="ts-section ts-section-ink">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal">SEE IT IN 60 SECONDS</h2>
-            <div id="demo-video" className="ts-demo-frame ts-reveal" role="img" aria-label="60 second demo video placeholder">
+            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+              SEE IT IN <span className="ts-hl">60 SECONDS</span>
+            </h2>
+            <div
+              id="demo-video"
+              className="ts-demo-frame ts-reveal"
+              role="img"
+              aria-label="60 second demo video placeholder"
+            >
               <div className="ts-demo-play" />
             </div>
             <div style={{ textAlign: "center" }}>
@@ -264,30 +313,66 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 6. THE OFFER */}
-        <section id="seats" className="ts-section ts-section-lime">
+        {/* 6. THE OFFER — OFF-WHITE bg (lime CTAs/badges pop) */}
+        <section id="seats" className="ts-section ts-section-pale">
           <div className="ts-container">
+            <span className="ts-section-eyebrow ts-reveal">THE OFFER</span>
             <h2 className="ts-section-title ts-reveal">
-              FOUNDING 10 — EVERYONE PAYS ₹299/MO. FOREVER.
+              FOUNDING 10 — EVERYONE PAYS <span className="ts-hl">₹299/MO. FOREVER.</span>
             </h2>
             <p className="ts-section-lead ts-reveal">
               That's 90% off the ₹2,999 list price — locked for life. Your seat number decides
               your monthly credits. Earlier seat = more credits, forever.
             </p>
 
+            <div className="ts-seats-header-warn ts-reveal">
+              EVERY SEAT SOLD = <strong>GONE FOREVER</strong>. We will never re-open a sold seat,
+              never re-run this offer, never discount again.{" "}
+              <strong>This page self-destructs after Seat 10.</strong>
+            </div>
+
+            {/* LOSS METER */}
+            <div className="ts-lossmeter ts-reveal" aria-label="Seats claimed vs remaining">
+              <div className="ts-lossmeter-bar">
+                {seats.map((s) => (
+                  <div
+                    key={s.n}
+                    className={`ts-lossmeter-cell ${s.taken ? "sold" : "free"}`}
+                    aria-label={s.taken ? `Seat ${s.n} sold` : `Seat ${s.n} available`}
+                  >
+                    {s.taken ? "✕" : s.n}
+                  </div>
+                ))}
+              </div>
+              <div className="ts-lossmeter-caption">
+                {seatsTaken} claimed · {seatsAvailable} remaining · 0 will return
+              </div>
+            </div>
+
             <div className="ts-seat-grid ts-reveal">
-              {SEATS.map((s) => {
+              {seats.map((s, idx) => {
                 const isNext = s.n === nextAvailable;
+                // Find NEXT future available after this one for the "if you wait" line
+                const nextFuture = seats
+                  .slice(idx + 1)
+                  .find((x) => !x.taken);
+                const diff = nextFuture ? s.credits - nextFuture.credits : 0;
+
                 if (s.taken) {
                   return (
-                    <div key={s.n} className="ts-seat ts-seat-taken" aria-label={`Seat ${s.n} taken`}>
-                      <div className="ts-seat-num">
-                        SEAT <strong>{s.n}</strong>
-                      </div>
+                    <div
+                      key={s.n}
+                      className="ts-seat ts-seat-taken"
+                      aria-label={`Seat ${s.n} gone forever`}
+                    >
+                      <div className="ts-seat-num">SEAT</div>
+                      <div className="ts-seat-badge-num">{s.n}</div>
                       <div className="ts-seat-credits">{s.credits} CREDITS/MO</div>
                       <div className="ts-seat-mins">(~{s.mins} min of live translation)</div>
-                      <div className="ts-seat-stamp" aria-hidden="true">✕</div>
-                      <div className="ts-seat-taken-label">TAKEN</div>
+                      <div className="ts-seat-lifetime">🔒 LIFETIME LOCK</div>
+                      <div className="ts-seat-stamp" aria-hidden="true">
+                        GONE FOREVER
+                      </div>
                     </div>
                   );
                 }
@@ -298,17 +383,21 @@ function TalkSyncLanding() {
                     aria-label={`Seat ${s.n} available`}
                   >
                     {isNext && <span className="ts-seat-next-badge">← NEXT AVAILABLE</span>}
-                    <div className="ts-seat-num">
-                      SEAT <strong>{s.n}</strong>
-                    </div>
+                    <div className="ts-seat-num">SEAT</div>
+                    <div className="ts-seat-badge-num">{s.n}</div>
                     <div className="ts-seat-credits">{s.credits} CREDITS/MO</div>
                     <div className="ts-seat-mins">(~{s.mins} min of live translation)</div>
-                    <button
-                      className="ts-seat-btn"
-                      onClick={() => claim(s.n)}
-                    >
+                    <div className="ts-seat-lifetime">🔒 LIFETIME LOCK</div>
+                    <button className="ts-seat-btn" onClick={() => claim(s.n)}>
                       CLAIM SEAT {s.n} — ₹299
                     </button>
+                    {nextFuture && diff > 0 && (
+                      <div className="ts-seat-wait">
+                        IF YOU WAIT: next seat = {nextFuture.credits} credits
+                        <br />
+                        (−{diff} every month, forever)
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -328,10 +417,59 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 7. FEATURES */}
-        <section className="ts-section ts-section-white">
+        {/* 6b. WHAT FOUNDING MEMBERS KEEP FOREVER — BLACK bg */}
+        <section className="ts-section ts-section-ink">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal">WHAT'S IN THE BOX</h2>
+            <span className="ts-section-eyebrow ts-reveal">THE FOREVER DEAL</span>
+            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+              WHAT FOUNDING MEMBERS <span className="ts-hl">KEEP FOREVER</span>
+            </h2>
+            <div className="ts-keep-table-wrap ts-reveal" style={{ marginTop: 24 }}>
+              <table className="ts-keep-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>FOUNDING MEMBER (YOU)</th>
+                    <th>EVERYONE ELSE (AFTER SEAT 10)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Price</td>
+                    <td className="ts-keep-you">₹299/mo locked for life</td>
+                    <td className="ts-keep-them">₹2,999/mo</td>
+                  </tr>
+                  <tr>
+                    <td>Savings</td>
+                    <td className="ts-keep-you">90% off — permanent</td>
+                    <td className="ts-keep-them">0% — forever</td>
+                  </tr>
+                  <tr>
+                    <td>Your seat's credits</td>
+                    <td className="ts-keep-you">Locked to you for life</td>
+                    <td className="ts-keep-them">Standard allocation</td>
+                  </tr>
+                  <tr>
+                    <td>This offer again?</td>
+                    <td className="ts-keep-you">Yours forever</td>
+                    <td className="ts-keep-them">Never. Sold seats never re-open.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="ts-keep-cta ts-reveal">
+              Founding = you pay <strong>~₹32,400 LESS</strong> every single year. For life.
+              That's the deal.
+            </div>
+          </div>
+        </section>
+
+        {/* 7. FEATURES — BLACK bg */}
+        <section className="ts-section ts-section-ink">
+          <div className="ts-container">
+            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+              WHAT'S <span className="ts-hl">IN THE BOX</span>
+            </h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
               <article className="ts-card">
                 <h3>LIVE VOICE TRANSLATION</h3>
@@ -353,8 +491,8 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 8. COMPARISON */}
-        <section className="ts-section ts-section-pale">
+        {/* 8. COMPARISON — WHITE bg */}
+        <section className="ts-section ts-section-white">
           <div className="ts-container">
             <h2 className="ts-section-title ts-reveal">TALKSYNC vs THE REST</h2>
             <div className="ts-compare-wrap ts-reveal">
@@ -362,7 +500,7 @@ function TalkSyncLanding() {
                 <thead>
                   <tr>
                     <th></th>
-                    <th>TALKSYNC</th>
+                    <th className="us-col">TALKSYNC</th>
                     <th>GOOGLE MEET</th>
                     <th>TEAMS PREMIUM</th>
                   </tr>
@@ -405,7 +543,7 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 9. FOUNDER NOTE */}
+        {/* 9. FOUNDER NOTE — BLACK bg */}
         <section className="ts-section ts-section-ink">
           <div className="ts-container">
             <div className="ts-founder ts-reveal">
@@ -426,8 +564,8 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 10. FAQ */}
-        <section className="ts-section ts-section-white">
+        {/* 10. FAQ — OFF-WHITE bg */}
+        <section className="ts-section ts-section-pale">
           <div className="ts-container">
             <h2 className="ts-section-title ts-reveal">QUESTIONS, ANSWERED HONESTLY</h2>
             <div className="ts-faq ts-reveal">
@@ -445,18 +583,38 @@ function TalkSyncLanding() {
           </div>
         </section>
 
-        {/* 11. FINAL CTA */}
+        {/* 11. FINAL CTA — FULL LIME (the only one) */}
         <section className="ts-section ts-section-lime">
           <div className="ts-container" style={{ textAlign: "center" }}>
-            <h2 className="ts-section-title ts-reveal" style={{ fontSize: "clamp(32px, 6vw, 56px)", lineHeight: "110%" }}>
-              10 SEATS. THEN THE PRICE 10Xs.
+            <h2
+              className="ts-section-title ts-reveal"
+              style={{ fontSize: "clamp(32px, 6vw, 56px)", lineHeight: "110%" }}
+            >
+              10 SEATS. SOLD ONCE. NEVER AGAIN.
             </h2>
+            <p className="ts-section-lead ts-reveal" style={{ margin: "16px auto 0", maxWidth: 640 }}>
+              ₹299/mo forever vs ₹2,999/mo forever — you're one click from the right side of that
+              line.
+            </p>
             <div className="ts-reveal" style={{ marginTop: 28 }}>
-              <button className="ts-btn" onClick={() => scrollToId("seats")}>
+              <button
+                className="ts-btn"
+                style={{ background: "var(--ink)", color: "var(--lime)" }}
+                onClick={() => scrollToId("seats")}
+              >
                 CLAIM FOUNDING SEAT — ₹299/MO FOREVER
               </button>
             </div>
-            <div className="ts-hero-trust ts-reveal" style={{ marginTop: 20 }}>
+            <div
+              className="ts-reveal"
+              style={{
+                marginTop: 20,
+                fontSize: 13,
+                fontWeight: 500,
+                letterSpacing: 0.5,
+                textTransform: "uppercase",
+              }}
+            >
               90% off list price · Full refund if we don't launch · Free trial needs no card
             </div>
           </div>
@@ -512,12 +670,7 @@ function FaqItem({
         <span>{q}</span>
         <span className="ts-faq-icon" aria-hidden="true">+</span>
       </button>
-      <div
-        id={id}
-        className="ts-faq-body"
-        role="region"
-        style={{ maxHeight: maxH }}
-      >
+      <div id={id} className="ts-faq-body" role="region" style={{ maxHeight: maxH }}>
         <div ref={bodyRef} className="ts-faq-body-inner">
           {a}
         </div>
