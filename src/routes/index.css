@@ -860,3 +860,43 @@
   .ts-btn:hover, .ts-seat-btn:hover { transform: none; }
   .ts-seat-next { animation: none; }
 }
+
+/* ============ SKELETON LOADING ============ */
+.ts-skeleton-root { min-height: 100vh; }
+.ts-sk {
+  display: inline-block;
+  background: var(--ink);
+  border: 3px solid var(--ink);
+  position: relative;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.ts-sk-line { height: 16px; width: 100%; }
+.ts-sk-block { display: block; width: 100%; box-shadow: 6px 6px 0 var(--ink); background: var(--lime-pale); }
+.ts-sk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(231, 255, 44, 0.55) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: ts-shimmer 1.2s ease-in-out infinite;
+}
+.ts-sk-line::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+}
+@keyframes ts-shimmer {
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ts-sk::after { animation: none; }
+}
