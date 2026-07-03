@@ -418,10 +418,10 @@ function TalkSyncLanding() {
         </section>
 
         {/* 6b. WHAT FOUNDING MEMBERS KEEP FOREVER — BLACK bg */}
-        <section className="ts-section ts-section-ink">
+        <section className="ts-section ts-section-white">
           <div className="ts-container">
             <span className="ts-section-eyebrow ts-reveal">THE FOREVER DEAL</span>
-            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+            <h2 className="ts-section-title ts-reveal">
               WHAT FOUNDING MEMBERS <span className="ts-hl">KEEP FOREVER</span>
             </h2>
             <div className="ts-keep-table-wrap ts-reveal" style={{ marginTop: 24 }}>
