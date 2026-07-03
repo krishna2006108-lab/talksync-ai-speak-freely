@@ -492,7 +492,7 @@ function TalkSyncLanding() {
         </section>
 
         {/* 8. COMPARISON — WHITE bg */}
-        <section className="ts-section ts-section-white">
+        <section className="ts-section ts-section-pale">
           <div className="ts-container">
             <h2 className="ts-section-title ts-reveal">TALKSYNC vs THE REST</h2>
             <div className="ts-compare-wrap ts-reveal">
