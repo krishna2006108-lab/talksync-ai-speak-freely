@@ -472,6 +472,7 @@ function TalkSyncLanding() {
             </h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
               <article className="ts-card">
+                <span className="ts-badge-onlyus">ONLY US</span>
                 <h3>LIVE VOICE TRANSLATION</h3>
                 <p>Natural voice, not robotic. Your tone, their language.</p>
               </article>
