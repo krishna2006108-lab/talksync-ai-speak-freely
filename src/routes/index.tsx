@@ -314,7 +314,7 @@ function TalkSyncLanding() {
         </section>
 
         {/* 6. THE OFFER — OFF-WHITE bg (lime CTAs/badges pop) */}
-        <section id="seats" className="ts-section ts-section-pale">
+        <section id="seats" className="ts-section ts-section-lime">
           <div className="ts-container">
             <span className="ts-section-eyebrow ts-reveal">THE OFFER</span>
             <h2 className="ts-section-title ts-reveal">
