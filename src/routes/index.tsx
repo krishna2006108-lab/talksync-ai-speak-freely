@@ -292,9 +292,9 @@ function TalkSyncLanding() {
         </section>
 
         {/* 5. DEMO — BLACK bg */}
-        <section id="demo" className="ts-section ts-section-ink">
+        <section id="demo" className="ts-section ts-section-white">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+            <h2 className="ts-section-title ts-reveal">
               SEE IT IN <span className="ts-hl">60 SECONDS</span>
             </h2>
             <div
