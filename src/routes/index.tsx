@@ -565,7 +565,7 @@ function TalkSyncLanding() {
         </section>
 
         {/* 10. FAQ — OFF-WHITE bg */}
-        <section className="ts-section ts-section-pale">
+        <section className="ts-section ts-section-white">
           <div className="ts-container">
             <h2 className="ts-section-title ts-reveal">QUESTIONS, ANSWERED HONESTLY</h2>
             <div className="ts-faq ts-reveal">
