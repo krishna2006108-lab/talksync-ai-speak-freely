@@ -160,9 +160,9 @@ function TalkSyncLanding() {
 
       <main>
         {/* 1. HERO — BLACK bg */}
-        <section className="ts-section ts-section-ink ts-hero">
+        <section className="ts-section ts-section-lime ts-hero">
           <div className="ts-container">
-            <h1 style={{ color: "var(--white)" }}>
+            <h1>
               SPEAK HINDI. THEY HEAR <span className="ts-hl">ENGLISH.</span> LIVE.
             </h1>
             <p className="ts-hero-sub">
