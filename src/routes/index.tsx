@@ -258,9 +258,9 @@ function TalkSyncLanding() {
         </section>
 
         {/* 4. HOW IT WORKS — OFF-WHITE bg */}
-        <section className="ts-section ts-section-pale">
+        <section className="ts-section ts-section-ink">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal">HOW IT WORKS</h2>
+            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>HOW IT WORKS</h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
               <article className="ts-card">
                 <div className="ts-card-num">1</div>
