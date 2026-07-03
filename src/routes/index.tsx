@@ -29,12 +29,55 @@ const seatsQueryOptions = queryOptions({
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(seatsQueryOptions),
   component: TalkSyncLanding,
+  pendingMs: 100,
+  pendingMinMs: 400,
+  pendingComponent: TalkSyncSkeleton,
   errorComponent: ({ error }) => (
     <div style={{ padding: 24, fontFamily: "system-ui" }} role="alert">
       Couldn't load seat availability: {String(error?.message ?? "unknown")}
     </div>
   ),
 });
+
+function TalkSyncSkeleton() {
+  return (
+    <div className="ts-root ts-skeleton-root" aria-busy="true" aria-live="polite">
+      <div className="ts-sticky">
+        <span className="ts-sticky-text">
+          <span className="ts-sk ts-sk-line" style={{ width: 220 }} />
+        </span>
+        <span className="ts-sk ts-sk-block" style={{ width: 72, height: 32 }} />
+      </div>
+      <section className="ts-section ts-section-lime">
+        <div className="ts-container">
+          <span className="ts-sk ts-sk-line" style={{ width: "80%", height: 40, marginBottom: 16 }} />
+          <span className="ts-sk ts-sk-line" style={{ width: "60%", height: 40, marginBottom: 24 }} />
+          <span className="ts-sk ts-sk-line" style={{ width: "90%", height: 18, marginBottom: 8 }} />
+          <span className="ts-sk ts-sk-line" style={{ width: "70%", height: 18, marginBottom: 28 }} />
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 40 }}>
+            <span className="ts-sk ts-sk-block" style={{ width: 260, height: 56 }} />
+            <span className="ts-sk ts-sk-block" style={{ width: 200, height: 56 }} />
+          </div>
+          <div className="ts-grid ts-grid-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="ts-sk ts-sk-block" style={{ height: 220 }} />
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="ts-section ts-section-white">
+        <div className="ts-container">
+          <span className="ts-sk ts-sk-line" style={{ width: 240, height: 32, marginBottom: 24 }} />
+          <div className="ts-seat-grid">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="ts-sk ts-sk-block" style={{ height: 200 }} />
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 const FAQ_ITEMS = [
   {
@@ -472,6 +515,7 @@ function TalkSyncLanding() {
             </h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
               <article className="ts-card">
+                <span className="ts-badge-onlyus">ONLY US</span>
                 <h3>LIVE VOICE TRANSLATION</h3>
                 <p>Natural voice, not robotic. Your tone, their language.</p>
               </article>
