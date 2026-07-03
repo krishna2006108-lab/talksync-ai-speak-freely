@@ -14,7 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      founding_seats: {
+        Row: {
+          created_at: string
+          credits: number
+          mins: number
+          n: number
+          taken: boolean
+          taken_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits: number
+          mins: number
+          n: number
+          taken?: boolean
+          taken_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          mins?: number
+          n?: number
+          taken?: boolean
+          taken_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
