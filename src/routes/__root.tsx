@@ -77,16 +77,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "TalkSync AI — Speak Hindi. They Hear English. Live." },
+      {
+        name: "description",
+        content:
+          "Real-time AI voice translation for Zoom, Google Meet & Teams. Speak your language — your client hears theirs. Founding seats: ₹299/mo forever.",
+      },
+      { name: "author", content: "TalkSync AI" },
+      { property: "og:title", content: "TalkSync AI — Speak Hindi. They Hear English. Live." },
+      {
+        property: "og:description",
+        content:
+          "Real-time AI voice translation for client calls. Founding 10 seats at ₹299/mo forever — 90% off list price.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "TalkSync AI — Speak Hindi. They Hear English. Live." },
+      {
+        name: "twitter:description",
+        content: "Real-time AI voice translation for client calls. Founding seats ₹299/mo forever.",
+      },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
