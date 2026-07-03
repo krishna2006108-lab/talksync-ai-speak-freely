@@ -160,9 +160,9 @@ function TalkSyncLanding() {
 
       <main>
         {/* 1. HERO — BLACK bg */}
-        <section className="ts-section ts-section-ink ts-hero">
+        <section className="ts-section ts-section-lime ts-hero">
           <div className="ts-container">
-            <h1 style={{ color: "var(--white)" }}>
+            <h1>
               SPEAK HINDI. THEY HEAR <span className="ts-hl">ENGLISH.</span> LIVE.
             </h1>
             <p className="ts-hero-sub">
@@ -229,9 +229,9 @@ function TalkSyncLanding() {
         </section>
 
         {/* 3. WHY THIS EXISTS — BLACK bg */}
-        <section className="ts-section ts-section-ink">
+        <section className="ts-section ts-section-white">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+            <h2 className="ts-section-title ts-reveal">
               WHY THIS <span className="ts-hl">EXISTS</span>
             </h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
@@ -258,9 +258,9 @@ function TalkSyncLanding() {
         </section>
 
         {/* 4. HOW IT WORKS — OFF-WHITE bg */}
-        <section className="ts-section ts-section-pale">
+        <section className="ts-section ts-section-ink">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal">HOW IT WORKS</h2>
+            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>HOW IT WORKS</h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
               <article className="ts-card">
                 <div className="ts-card-num">1</div>
@@ -292,9 +292,9 @@ function TalkSyncLanding() {
         </section>
 
         {/* 5. DEMO — BLACK bg */}
-        <section id="demo" className="ts-section ts-section-ink">
+        <section id="demo" className="ts-section ts-section-white">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+            <h2 className="ts-section-title ts-reveal">
               SEE IT IN <span className="ts-hl">60 SECONDS</span>
             </h2>
             <div
@@ -314,7 +314,7 @@ function TalkSyncLanding() {
         </section>
 
         {/* 6. THE OFFER — OFF-WHITE bg (lime CTAs/badges pop) */}
-        <section id="seats" className="ts-section ts-section-pale">
+        <section id="seats" className="ts-section ts-section-lime">
           <div className="ts-container">
             <span className="ts-section-eyebrow ts-reveal">THE OFFER</span>
             <h2 className="ts-section-title ts-reveal">
@@ -418,10 +418,10 @@ function TalkSyncLanding() {
         </section>
 
         {/* 6b. WHAT FOUNDING MEMBERS KEEP FOREVER — BLACK bg */}
-        <section className="ts-section ts-section-ink">
+        <section className="ts-section ts-section-white">
           <div className="ts-container">
             <span className="ts-section-eyebrow ts-reveal">THE FOREVER DEAL</span>
-            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+            <h2 className="ts-section-title ts-reveal">
               WHAT FOUNDING MEMBERS <span className="ts-hl">KEEP FOREVER</span>
             </h2>
             <div className="ts-keep-table-wrap ts-reveal" style={{ marginTop: 24 }}>
@@ -465,9 +465,9 @@ function TalkSyncLanding() {
         </section>
 
         {/* 7. FEATURES — BLACK bg */}
-        <section className="ts-section ts-section-ink">
+        <section className="ts-section ts-section-white">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+            <h2 className="ts-section-title ts-reveal">
               WHAT'S <span className="ts-hl">IN THE BOX</span>
             </h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
@@ -492,7 +492,7 @@ function TalkSyncLanding() {
         </section>
 
         {/* 8. COMPARISON — WHITE bg */}
-        <section className="ts-section ts-section-white">
+        <section className="ts-section ts-section-pale">
           <div className="ts-container">
             <h2 className="ts-section-title ts-reveal">TALKSYNC vs THE REST</h2>
             <div className="ts-compare-wrap ts-reveal">
@@ -565,7 +565,7 @@ function TalkSyncLanding() {
         </section>
 
         {/* 10. FAQ — OFF-WHITE bg */}
-        <section className="ts-section ts-section-pale">
+        <section className="ts-section ts-section-white">
           <div className="ts-container">
             <h2 className="ts-section-title ts-reveal">QUESTIONS, ANSWERED HONESTLY</h2>
             <div className="ts-faq ts-reveal">

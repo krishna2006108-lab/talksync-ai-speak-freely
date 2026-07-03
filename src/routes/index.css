@@ -175,7 +175,7 @@
 /* ============ HERO ============ */
 .ts-hero { padding-top: 40px; }
 .ts-hero h1 { max-width: 900px; text-transform: uppercase; letter-spacing: -0.02em; }
-.ts-hero-sub { margin-top: 20px; max-width: 720px; font-size: 18px; color: var(--white); opacity: 0.9; }
+.ts-hero-sub { margin-top: 20px; max-width: 720px; font-size: 18px; color: inherit; opacity: 0.9; }
 .ts-hero-ctas { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 28px; }
 .ts-hero-trust {
   margin-top: 16px;
@@ -183,7 +183,7 @@
   font-weight: 500;
   letter-spacing: 0.3px;
   text-transform: uppercase;
-  color: var(--white);
+  color: inherit;
   opacity: 0.75;
 }
 .ts-hero-visual {
