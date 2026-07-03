@@ -229,9 +229,9 @@ function TalkSyncLanding() {
         </section>
 
         {/* 3. WHY THIS EXISTS — BLACK bg */}
-        <section className="ts-section ts-section-ink">
+        <section className="ts-section ts-section-white">
           <div className="ts-container">
-            <h2 className="ts-section-title ts-reveal" style={{ color: "var(--white)" }}>
+            <h2 className="ts-section-title ts-reveal">
               WHY THIS <span className="ts-hl">EXISTS</span>
             </h2>
             <div className="ts-grid ts-grid-3 ts-reveal">
