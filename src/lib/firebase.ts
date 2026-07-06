@@ -53,7 +53,16 @@ export function firebaseAuthErrorMessage(code: string): string {
       return "Too many attempts. Please wait a moment and try again.";
     case "auth/network-request-failed":
       return "Network error. Check your connection and try again.";
+    case "auth/unauthorized-domain":
+      return "This site isn't authorized for Google sign-in yet. Add this domain in Firebase Console → Authentication → Settings → Authorized domains.";
+    case "auth/operation-not-allowed":
+      return "This sign-in method isn't enabled. Turn it on in Firebase Console → Authentication → Sign-in method.";
+    case "auth/configuration-not-found":
+      return "Firebase auth isn't fully configured. Enable the sign-in method in the Firebase Console.";
     default:
-      return "Something went wrong. Please try again.";
+      // Surface the raw code so the exact cause is visible.
+      return code
+        ? `Sign-in failed (${code}). Please try again.`
+        : "Something went wrong. Please try again.";
   }
 }

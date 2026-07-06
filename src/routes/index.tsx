@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -336,9 +336,20 @@ function TalkSyncLanding() {
           {critical ? "🚨" : "⚡"} ONLY {seatsAvailable} OF 10 FOUNDING SEATS LEFT
           {nextCredits !== null && ` — NEXT SEAT LOCKS AT ${nextCredits} CREDITS/MO`}
         </span>
-        <button className="ts-sticky-btn" onClick={() => scrollToId("seats")}>
-          CLAIM
-        </button>
+        <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          {authReady && !user && (
+            <Link
+              to="/signin"
+              className="ts-sticky-btn"
+              style={{ background: "transparent", color: "var(--lime)", textDecoration: "none" }}
+            >
+              LOG IN
+            </Link>
+          )}
+          <button className="ts-sticky-btn" onClick={() => scrollToId("seats")}>
+            CLAIM
+          </button>
+        </span>
       </div>
 
       {user && (
