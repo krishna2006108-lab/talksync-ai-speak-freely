@@ -176,12 +176,21 @@ function TalkSyncLanding() {
 
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  const claimFn = useServerFn(claimFoundingSeat);
+  const claimMutation = useMutation({
+    mutationFn: (n?: number) => claimFn({ data: n ? { n } : {} }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founding_seats"] });
+    },
+  });
+
   const claim = (n?: number) => {
     if (PAYMENT_LINK) {
       window.location.href = PAYMENT_LINK + (n ? `?seat=${n}` : "");
-    } else {
-      scrollToId("seats");
+      return;
     }
+    if (claimMutation.isPending) return;
+    claimMutation.mutate(n);
   };
 
   const critical = seatsAvailable <= 3;
