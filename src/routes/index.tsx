@@ -517,9 +517,20 @@ function TalkSyncLanding() {
                     <div className="ts-seat-credits">{s.credits} CREDITS/MO</div>
                     <div className="ts-seat-mins">(~{s.mins} min of live translation)</div>
                     <div className="ts-seat-lifetime">🔒 LIFETIME LOCK</div>
-                    <button className="ts-seat-btn" onClick={() => claim(s.n)}>
-                      CLAIM SEAT {s.n} — ₹299
+                    <button
+                      className="ts-seat-btn"
+                      onClick={() => claim(s.n)}
+                      disabled={claimMutation.isPending}
+                    >
+                      {claimMutation.isPending && claimMutation.variables === s.n
+                        ? "OPENING…"
+                        : `CLAIM SEAT ${s.n} — ₹299`}
                     </button>
+                    {payError && claimMutation.variables === s.n && (
+                      <div className="ts-seat-wait" role="alert" style={{ color: "#990000" }}>
+                        {payError}
+                      </div>
+                    )}
                     {nextFuture && diff > 0 && (
                       <div className="ts-seat-wait">
                         IF YOU WAIT: next seat = {nextFuture.credits} credits
