@@ -207,25 +207,67 @@ function TalkSyncLanding() {
 
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const claimFn = useServerFn(claimFoundingSeat);
+  const createOrderFn = useServerFn(createRazorpayOrder);
+  const [payError, setPayError] = useState<string | null>(null);
   const claimMutation = useMutation({
-    mutationFn: (n?: number) => claimFn({ data: n ? { n } : {} }),
+    mutationFn: async (n: number) => {
+      const order = await createOrderFn({ data: { n } });
+      await loadRazorpay();
+      if (!window.Razorpay) throw new Error("Razorpay Checkout unavailable");
+      await new Promise<void>((resolve, reject) => {
+        const rzp = new window.Razorpay!({
+          key: order.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          order_id: order.orderId,
+          name: "TalkSync AI",
+          description: `Founding Seat ${order.seatN} — ₹299/mo forever`,
+          notes: { seat_n: String(order.seatN) },
+          theme: { color: "#E7FF2C" },
+          handler: () => {
+            // Payment succeeded on the client. The webhook is the source of
+            // truth — it marks the seat taken. We just refetch and show
+            // pending state until realtime/webhook flips the row.
+            resolve();
+          },
+          modal: {
+            ondismiss: () => reject(new Error("Payment cancelled")),
+          },
+        });
+        rzp.on("payment.failed", (resp: unknown) => {
+          console.error("[razorpay] payment.failed", resp);
+          reject(new Error("Payment failed"));
+        });
+        rzp.open();
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["founding_seats"] });
+      setPayError(null);
+      // Poll a few times in case the webhook lands a moment after the
+      // client sees "success" — realtime handles the rest.
+      const qk = { queryKey: ["founding_seats"] };
+      queryClient.invalidateQueries(qk);
+      let tries = 0;
+      const t = setInterval(() => {
+        tries += 1;
+        queryClient.invalidateQueries(qk);
+        if (tries >= 4) clearInterval(t);
+      }, 1500);
+    },
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : "Payment error";
+      if (msg !== "Payment cancelled") setPayError(msg);
     },
   });
 
   const claim = (n?: number) => {
-    if (PAYMENT_LINK) {
-      window.location.href = PAYMENT_LINK + (n ? `?seat=${n}` : "");
+    setPayError(null);
+    if (!n) {
+      scrollToId("seats");
       return;
     }
-    // No payment wired yet: record the claim in the database.
-    if (n && !claimMutation.isPending) {
-      claimMutation.mutate(n);
-    } else {
-      scrollToId("seats");
-    }
+    if (claimMutation.isPending) return;
+    claimMutation.mutate(n);
   };
 
   const critical = seatsAvailable <= 3;
