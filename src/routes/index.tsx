@@ -3,7 +3,7 @@ import { queryOptions, useSuspenseQuery, useQueryClient, useMutation } from "@ta
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { createRazorpayOrder } from "@/lib/razorpay.functions";
+import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import "./index.css";
 
 // Razorpay Checkout script — loaded on demand
@@ -206,6 +206,7 @@ function TalkSyncLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const createOrderFn = useServerFn(createRazorpayOrder);
+  const verifyPaymentFn = useServerFn(verifyRazorpayPayment);
   const [payError, setPayError] = useState<string | null>(null);
   const claimMutation = useMutation({
     mutationFn: async (n: number) => {
@@ -222,11 +223,17 @@ function TalkSyncLanding() {
           description: `Founding Seat ${order.seatN} — ₹299/mo forever`,
           notes: { seat_n: String(order.seatN) },
           theme: { color: "#E7FF2C" },
-          handler: () => {
-            // Payment succeeded on the client. The webhook is the source of
-            // truth — it marks the seat taken. We just refetch and show
-            // pending state until realtime/webhook flips the row.
-            resolve();
+          handler: (response: {
+            razorpay_order_id: string;
+            razorpay_payment_id: string;
+            razorpay_signature: string;
+          }) => {
+            // Verify the signature server-side and mark the seat taken
+            // immediately, so the page flips in real time. If this call
+            // fails, the webhook still confirms the seat shortly after.
+            verifyPaymentFn({ data: response })
+              .catch((e) => console.error("[razorpay] client verify failed", e))
+              .finally(() => resolve());
           },
           modal: {
             ondismiss: () => reject(new Error("Payment cancelled")),

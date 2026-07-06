@@ -70,3 +70,72 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       seatN: data.n,
     };
   });
+
+const verifyPaymentInput = z.object({
+  razorpay_order_id: z.string().min(1),
+  razorpay_payment_id: z.string().min(1),
+  razorpay_signature: z.string().min(1),
+});
+
+// Called from Checkout's success handler: verifies the payment signature and
+// marks the seat taken immediately, so the page updates in real time without
+// waiting for the webhook (which stays on as the reliable backup).
+export const verifyRazorpayPayment = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => verifyPaymentInput.parse(input))
+  .handler(async ({ data }) => {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      throw new Error("Razorpay is not configured on the server");
+    }
+
+    // Signature = HMAC-SHA256(order_id|payment_id) with the key secret.
+    const { createHmac, timingSafeEqual } = await import("crypto");
+    const expected = createHmac("sha256", keySecret)
+      .update(`${data.razorpay_order_id}|${data.razorpay_payment_id}`)
+      .digest("hex");
+    const sigBuf = Buffer.from(data.razorpay_signature, "utf8");
+    const expBuf = Buffer.from(expected, "utf8");
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
+      console.error("[razorpay] invalid payment signature", data.razorpay_order_id);
+      throw new Error("Payment verification failed");
+    }
+
+    // Don't trust the client for the seat number — read it back from the
+    // order's notes via the Razorpay API.
+    const auth = btoa(`${keyId}:${keySecret}`);
+    const res = await fetch(
+      `https://api.razorpay.com/v1/orders/${encodeURIComponent(data.razorpay_order_id)}`,
+      { headers: { Authorization: `Basic ${auth}` } },
+    );
+    if (!res.ok) {
+      console.error("[razorpay] order fetch failed", res.status, await res.text());
+      throw new Error("Payment verification failed");
+    }
+    const order = (await res.json()) as { notes?: Record<string, string> };
+    const seatN = Number.parseInt(order.notes?.seat_n ?? "", 10);
+    if (!Number.isInteger(seatN) || seatN < 1 || seatN > 10) {
+      console.error("[razorpay] order has no valid seat_n note", order.notes);
+      throw new Error("Payment verification failed");
+    }
+
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+
+    // Idempotent: the webhook may already have flipped it.
+    const { error } = await supabaseAdmin
+      .from("founding_seats")
+      .update({ taken: true, taken_at: new Date().toISOString() })
+      .eq("n", seatN)
+      .eq("taken", false);
+    if (error) {
+      console.error("[razorpay] seat update failed", error);
+      throw new Error("Could not record your seat — it will be confirmed shortly");
+    }
+
+    console.info(
+      `[razorpay] seat ${seatN} claimed via payment ${data.razorpay_payment_id} (client verify)`,
+    );
+    return { seatN };
+  });
