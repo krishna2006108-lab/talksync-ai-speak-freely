@@ -189,8 +189,12 @@ function TalkSyncLanding() {
       window.location.href = PAYMENT_LINK + (n ? `?seat=${n}` : "");
       return;
     }
-    if (claimMutation.isPending) return;
-    claimMutation.mutate(n);
+    // No payment wired yet: record the claim in the database.
+    if (n && !claimMutation.isPending) {
+      claimMutation.mutate(n);
+    } else {
+      scrollToId("seats");
+    }
   };
 
   const critical = seatsAvailable <= 3;
