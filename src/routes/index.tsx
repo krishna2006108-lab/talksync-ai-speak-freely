@@ -37,8 +37,6 @@ function loadRazorpay(): Promise<void> {
   });
 }
 
-// ============ CONFIG ============
-const PAYMENT_LINK = ""; // TODO: wire to Razorpay checkout
 
 type Seat = {
   n: number;
