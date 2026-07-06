@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { claimFoundingSeat } from "@/lib/seats.functions";
 import "./index.css";
 
 // ============ CONFIG ============
@@ -174,9 +176,22 @@ function TalkSyncLanding() {
 
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  const claimFn = useServerFn(claimFoundingSeat);
+  const claimMutation = useMutation({
+    mutationFn: (n?: number) => claimFn({ data: n ? { n } : {} }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founding_seats"] });
+    },
+  });
+
   const claim = (n?: number) => {
     if (PAYMENT_LINK) {
       window.location.href = PAYMENT_LINK + (n ? `?seat=${n}` : "");
+      return;
+    }
+    // No payment wired yet: record the claim in the database.
+    if (n && !claimMutation.isPending) {
+      claimMutation.mutate(n);
     } else {
       scrollToId("seats");
     }
