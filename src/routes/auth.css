@@ -1,0 +1,441 @@
+/* TalkSync AI — Auth pages (matches the neo-brutalist landing look) */
+.ts-auth {
+  --lime: #e7ff2c;
+  --lime-dark: #c7e100;
+  --lime-pale: #faffd5;
+  --ink: #090a0a;
+  --grey: #404446;
+  --white: #ffffff;
+  --error: #990000;
+  --success: #7a9900;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: var(--white);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.ts-auth *,
+.ts-auth *::before,
+.ts-auth *::after {
+  box-sizing: border-box;
+}
+
+.ts-auth-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100dvh;
+}
+@media (min-width: 992px) {
+  .ts-auth-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---------- Brand column ---------- */
+.ts-auth-brand {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  border-right: 4px solid var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+@media (min-width: 992px) {
+  .ts-auth-brand {
+    display: flex;
+  }
+}
+.ts-auth-brand-lime {
+  background: var(--lime);
+  color: var(--ink);
+}
+.ts-auth-brand-ink {
+  background: var(--ink);
+  color: var(--white);
+}
+.ts-auth-logo {
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 2;
+}
+.ts-auth-brand-mid {
+  position: relative;
+  z-index: 2;
+  max-width: 460px;
+}
+.ts-auth-brand-mid h1 {
+  font-size: 44px;
+  line-height: 112%;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 20px 0 16px;
+}
+.ts-auth-brand-mid p {
+  font-size: 17px;
+  margin: 0;
+  opacity: 0.85;
+}
+.ts-auth-hl {
+  background: var(--ink);
+  color: var(--lime);
+  padding: 0 8px;
+}
+.ts-auth-brand-ink .ts-auth-hl {
+  background: var(--lime);
+  color: var(--ink);
+}
+.ts-auth-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 2px solid currentColor;
+  padding: 6px 12px;
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+}
+.ts-auth-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 2px solid currentColor;
+}
+/* floating decorative shapes */
+.ts-auth-shape {
+  position: absolute;
+  border: 3px solid currentColor;
+  opacity: 0.35;
+  z-index: 1;
+  animation: ts-auth-float 8s ease-in-out infinite;
+}
+.ts-auth-shape-1 { width: 90px; height: 90px; border-radius: 20px; top: 30%; right: 12%; animation-delay: 0s; }
+.ts-auth-shape-2 { width: 60px; height: 60px; border-radius: 50%; bottom: 22%; right: 30%; animation-delay: 1.5s; }
+.ts-auth-shape-3 { width: 44px; height: 44px; border-radius: 10px; top: 55%; left: 12%; animation-delay: 3s; }
+@keyframes ts-auth-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-16px) rotate(8deg); }
+}
+
+/* ---------- Mobile banner ---------- */
+.ts-auth-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 4px solid var(--ink);
+}
+.ts-auth-banner-lime { background: var(--lime); color: var(--ink); }
+.ts-auth-banner-ink { background: var(--ink); color: var(--white); }
+.ts-auth-banner .ts-auth-logo { font-size: 16px; }
+.ts-auth-banner-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.85; }
+@media (min-width: 992px) {
+  .ts-auth-banner { display: none; }
+}
+
+/* ---------- Form column ---------- */
+.ts-auth-form-col {
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background: var(--white);
+}
+@media (min-width: 768px) {
+  .ts-auth-form-col { padding: 48px; }
+}
+.ts-auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--white);
+  border: 3px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+  border-radius: 18px;
+  padding: 28px 22px;
+  animation: ts-auth-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (min-width: 640px) {
+  .ts-auth-card { padding: 40px; border-radius: 22px; }
+}
+@keyframes ts-auth-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ts-auth-title {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+.ts-auth-sub {
+  font-size: 15px;
+  color: var(--grey);
+  margin: 0 0 24px;
+}
+
+/* ---------- Fields ---------- */
+.ts-auth-field { margin-bottom: 16px; }
+.ts-auth-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  color: var(--grey);
+}
+.ts-auth-input-wrap { position: relative; }
+.ts-auth-input {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--white);
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 0 14px;
+  outline: none;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.ts-auth-input:focus {
+  box-shadow: 4px 4px 0 var(--lime);
+}
+.ts-auth-input[aria-invalid="true"] {
+  border-color: var(--error);
+}
+.ts-auth-input[aria-invalid="true"]:focus {
+  box-shadow: 4px 4px 0 var(--error);
+}
+.ts-auth-input.has-toggle { padding-right: 48px; }
+.ts-auth-eye {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 36px;
+  width: 36px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--grey);
+  border-radius: 8px;
+}
+.ts-auth-eye:hover { color: var(--ink); }
+.ts-auth-caps {
+  position: absolute;
+  right: 48px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: var(--ink);
+  color: var(--lime);
+  padding: 3px 6px;
+  border-radius: 6px;
+  pointer-events: none;
+}
+.ts-auth-error {
+  display: block;
+  color: var(--error);
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 6px;
+}
+.ts-auth-shake { animation: ts-auth-shake 0.25s ease; }
+@keyframes ts-auth-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* password strength */
+.ts-auth-strength {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+.ts-auth-strength-seg {
+  height: 6px;
+  border-radius: 4px;
+  background: #e3e3e3;
+  transition: background 0.2s ease;
+}
+.ts-auth-strength-hint {
+  font-size: 12px;
+  color: var(--grey);
+  margin-top: 6px;
+}
+
+/* ---------- Rows / buttons ---------- */
+.ts-auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 20px;
+  flex-wrap: wrap;
+}
+.ts-auth-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.ts-auth-remember input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+.ts-auth-link {
+  color: var(--info, #005099);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.ts-auth-link:hover { text-decoration: underline; }
+
+.ts-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  background: var(--lime);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.ts-auth-btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--ink); }
+.ts-auth-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.ts-auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.ts-auth-btn-success { background: var(--success); color: var(--white); }
+
+.ts-auth-btn-google {
+  background: var(--white);
+  color: var(--ink);
+}
+
+.ts-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+.ts-auth-divider span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+.ts-auth-divider::before,
+.ts-auth-divider::after {
+  content: "";
+  height: 2px;
+  flex: 1;
+  background: var(--ink);
+}
+
+.ts-auth-footer {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 14px;
+  color: var(--grey);
+}
+.ts-auth-footer a { color: var(--ink); font-weight: 700; text-decoration: underline; }
+
+.ts-auth-alert {
+  border: 2px solid var(--error);
+  background: #fff0f0;
+  color: var(--error);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+}
+.ts-auth-alert-info {
+  border-color: var(--success);
+  background: var(--lime-pale);
+  color: #3a4a00;
+}
+
+.ts-auth-spin {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ts-auth-spin 0.6s linear infinite;
+}
+@keyframes ts-auth-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ts-auth-caption-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+  max-width: 340px;
+}
+.ts-auth-caption {
+  border: 2px solid currentColor;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 500;
+  animation: ts-auth-cap 3s ease-in-out infinite;
+}
+.ts-auth-caption:nth-child(2) { animation-delay: 0.7s; }
+.ts-auth-caption:nth-child(3) { animation-delay: 1.4s; }
+.ts-auth-caption:nth-child(4) { animation-delay: 2.1s; }
+@keyframes ts-auth-cap {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-auth-card,
+  .ts-auth-shape,
+  .ts-auth-caption,
+  .ts-auth-shake {
+    animation: none !important;
+  }
+}

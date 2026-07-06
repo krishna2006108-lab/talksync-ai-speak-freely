@@ -1,10 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 import "./index.css";
+
+const homeSearchSchema = z.object({
+  // When set (e.g. after signing in), auto-open checkout for this seat.
+  seat: z.coerce.number().int().min(1).max(10).optional(),
+});
 
 // Razorpay Checkout script — loaded on demand
 const RAZORPAY_SCRIPT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
@@ -58,6 +66,7 @@ const seatsQueryOptions = queryOptions({
 });
 
 export const Route = createFileRoute("/")({
+  validateSearch: (s) => homeSearchSchema.parse(s),
   loader: ({ context }) => context.queryClient.ensureQueryData(seatsQueryOptions),
   component: TalkSyncLanding,
   pendingMs: 100,
@@ -157,6 +166,19 @@ function scrollToId(id: string) {
 function TalkSyncLanding() {
   const { data: seats } = useSuspenseQuery(seatsQueryOptions);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { seat: pendingSeat } = Route.useSearch();
+
+  // Firebase auth state (Supabase is only the database).
+  const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  useEffect(() => {
+    const unsub = onAuthStateChanged(getFirebaseAuth(), (u) => {
+      setUser(u);
+      setAuthReady(true);
+    });
+    return unsub;
+  }, []);
 
   const seatsAvailable = useMemo(() => seats.filter((s) => !s.taken).length, [seats]);
   const seatsTaken = seats.length - seatsAvailable;
@@ -223,6 +245,9 @@ function TalkSyncLanding() {
           description: `Founding Seat ${order.seatN} — ₹299/mo forever`,
           notes: { seat_n: String(order.seatN) },
           theme: { color: "#E7FF2C" },
+          prefill: user
+            ? { email: user.email ?? undefined, name: user.displayName ?? undefined }
+            : undefined,
           handler: (response: {
             razorpay_order_id: string;
             razorpay_payment_id: string;
@@ -271,9 +296,31 @@ function TalkSyncLanding() {
       scrollToId("seats");
       return;
     }
+    // Gate: must be signed in (Firebase) before paying.
+    if (!user) {
+      navigate({ to: "/signup", search: { seat: n } });
+      return;
+    }
     if (claimMutation.isPending) return;
     claimMutation.mutate(n);
   };
+
+  // After returning from sign-in/up with ?seat=N, auto-open checkout once.
+  const autoClaimed = useRef(false);
+  useEffect(() => {
+    if (autoClaimed.current) return;
+    if (!authReady || !user || pendingSeat == null) return;
+    const target = seats.find((s) => s.n === pendingSeat);
+    if (!target || target.taken) {
+      // Seat gone or invalid — just clear the param.
+      navigate({ to: "/", search: {}, replace: true });
+      return;
+    }
+    autoClaimed.current = true;
+    navigate({ to: "/", search: {}, replace: true });
+    claim(pendingSeat);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authReady, user, pendingSeat, seats]);
 
   const critical = seatsAvailable <= 3;
   const nextCredits = nextSeat?.credits ?? null;
@@ -293,6 +340,56 @@ function TalkSyncLanding() {
           CLAIM
         </button>
       </div>
+
+      {user && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 16,
+            left: 16,
+            zIndex: 200,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            background: "#090A0A",
+            color: "#E7FF2C",
+            border: "2px solid #E7FF2C",
+            borderRadius: 999,
+            padding: "6px 12px",
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: 0.3,
+            maxWidth: "90vw",
+          }}
+        >
+          <span
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: 180,
+            }}
+          >
+            ✓ {user.email ?? user.displayName ?? "Signed in"}
+          </span>
+          <button
+            onClick={() => signOut(getFirebaseAuth())}
+            style={{
+              background: "#E7FF2C",
+              color: "#090A0A",
+              border: "none",
+              borderRadius: 999,
+              padding: "3px 10px",
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              cursor: "pointer",
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      )}
 
       <main>
         {/* 1. HERO — BLACK bg */}
