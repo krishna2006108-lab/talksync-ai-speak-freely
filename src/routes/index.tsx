@@ -3,8 +3,39 @@ import { queryOptions, useSuspenseQuery, useQueryClient, useMutation } from "@ta
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { claimFoundingSeat } from "@/lib/seats.functions";
+import { createRazorpayOrder } from "@/lib/razorpay.functions";
 import "./index.css";
+
+// Razorpay Checkout script — loaded on demand
+const RAZORPAY_SCRIPT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => {
+      open: () => void;
+      on: (event: string, cb: (arg: unknown) => void) => void;
+    };
+  }
+}
+function loadRazorpay(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") return reject(new Error("no window"));
+    if (window.Razorpay) return resolve();
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src="${RAZORPAY_SCRIPT_SRC}"]`,
+    );
+    if (existing) {
+      existing.addEventListener("load", () => resolve());
+      existing.addEventListener("error", () => reject(new Error("script error")));
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = RAZORPAY_SCRIPT_SRC;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Failed to load Razorpay"));
+    document.head.appendChild(s);
+  });
+}
 
 // ============ CONFIG ============
 const PAYMENT_LINK = ""; // TODO: wire to Razorpay checkout
